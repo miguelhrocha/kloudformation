@@ -27,4 +27,4 @@ test:
       - .gradle
 
 after_script:
-  - bash <(curl -s https://codecov.io/bash)
+  - curl -s https://codecov.io/bash
