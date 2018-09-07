@@ -27,4 +27,5 @@ test:
       - .gradle
 
 after_script:
+  - apk add --update curl && rm -rf /var/cache/apk/*
   - curl -s https://codecov.io/bash
