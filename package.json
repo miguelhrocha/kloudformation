@@ -1,0 +1,25 @@
+{
+  "name": "kloudformation",
+  "version": "0.0.1",
+  "description": "Node goodies",
+  "repository": "https://gitlab.com/miguelhrocha/kloudformation.git",
+  "author": "Miguel Hernández <miguel.hrocha@gmail.com>",
+  "license": "Apache License 2.0",
+  "scripts": {
+    "commit": "git-cz",
+    "prepush": "./gradlew check",
+    "commitmsg": "commitlint -E GIT_PARAMS"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^7.1.2",
+    "@commitlint/config-conventional": "^7.1.2",
+    "commitizen": "^2.10.1",
+    "cz-conventional-changelog": "^2.1.0",
+    "husky": "^0.14.3"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
