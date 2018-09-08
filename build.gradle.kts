@@ -211,12 +211,16 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 group = "com.uqbar.kloudformation"
 version = "0.0.1"
 
+repositories {
+    jcenter()
+}
+
 plugins {
     base
     `maven-publish`
     `build-scan`
 
-    kotlin("jvm") version "1.2.61"
+    kotlin("jvm") version "1.2.60"
 
     id("com.diffplug.gradle.spotless") version "3.14.0"
     id("io.gitlab.arturbosch.detekt") version "1.0.0.RC7-3"
@@ -251,7 +255,6 @@ subprojects {
             licenseHeaderFile(rootProject.file("LICENSE"),
                     "(import |rootProject|dependencies|plugins|apply|include)")
         }
-
     }
 
     val sourcesJar by tasks.creating(Jar::class) {
@@ -296,5 +299,6 @@ dependencies {
 }
 
 buildScan {
+    setTermsOfServiceAgree("yes")
     publishAlways()
 }

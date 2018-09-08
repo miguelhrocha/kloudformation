@@ -204,6 +204,7 @@
  */
 
 plugins {
+    kotlin("jvm")
     jacoco
 
     id("io.gitlab.arturbosch.detekt")
