@@ -205,13 +205,8 @@
 
 plugins {
     jacoco
-    kotlin("jvm")
 
     id("io.gitlab.arturbosch.detekt")
-}
-
-dependencies {
-    compile(kotlin("stdlib"))
 }
 
 jacoco {

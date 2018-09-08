@@ -205,31 +205,36 @@
 
 @file:Suppress("INACCESSIBLE_TYPE")
 
+import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+group = "com.uqbar.kloudformation"
+version = "0.0.1"
+
 plugins {
     base
+    `maven-publish`
+    `build-scan`
 
-    kotlin("jvm") version "1.2.61" apply false
+    kotlin("jvm") version "1.2.61"
 
     id("com.diffplug.gradle.spotless") version "3.14.0"
     id("io.gitlab.arturbosch.detekt") version "1.0.0.RC7-3"
-}
-
-allprojects {
-
-    group = "com.uqbar.kloudformation"
-
-    version = "0.1"
-
-    repositories {
-        jcenter()
-    }
-
+    id("nebula.release") version "6.3.5"
+    id("org.jetbrains.dokka") version "0.9.17"
 }
 
 subprojects {
 
     apply {
+        plugin("kotlin")
         plugin("com.diffplug.gradle.spotless")
+        plugin("org.gradle.maven-publish")
+        plugin("org.jetbrains.dokka")
+    }
+
+    repositories {
+        jcenter()
     }
 
     spotless {
@@ -249,12 +254,47 @@ subprojects {
 
     }
 
+    val sourcesJar by tasks.creating(Jar::class) {
+        classifier = "sources"
+        from(sourceSets["main"].allSource)
+    }
+
+    val dokka by tasks.getting(DokkaTask::class) {
+        outputFormat = "html"
+        outputDirectory = "$buildDir/javadoc"
+        jdkVersion = 8
+    }
+
+    val dokkaJar by tasks.creating(Jar::class) {
+        group = JavaBasePlugin.DOCUMENTATION_GROUP
+        description = "Assembles Kotlin docs with Dokka"
+        classifier = "javadoc"
+        from(dokka)
+    }
+
+    publishing {
+        repositories {
+            maven("")
+        }
+
+        publications {
+            create("mavenJava", MavenPublication::class.java) {
+                from(components["java"])
+                artifact(dokkaJar)
+                artifact(sourcesJar)
+            }
+        }
+    }
 }
 
 dependencies {
+    implementation(kotlin("stdlib"))
 
     subprojects.forEach {
         archives(it)
     }
+}
 
+buildScan {
+    publishAlways()
 }
