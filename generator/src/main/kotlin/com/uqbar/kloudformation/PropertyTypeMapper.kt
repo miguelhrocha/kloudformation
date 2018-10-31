@@ -203,58 +203,28 @@
  *
  */
 
-plugins {
-    kotlin("jvm")
-    jacoco
+package com.uqbar.kloudformation
 
-    id("io.gitlab.arturbosch.detekt")
-}
+import com.beust.klaxon.JsonObject
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.asTypeName
+import kotlin.reflect.KClass
 
-dependencies {
-    compile("com.beust", "klaxon", "3.0.1")
-    compile("com.squareup", "kotlinpoet", "1.0.0-RC2")
+class PropertyTypeMapper {
 
-    testCompile("org.junit.jupiter", "junit-jupiter-params", "5.2.0")
-    testCompile(kotlin("test-junit5"))
-    testCompile("io.mockk", "mockk", "1.8.5")
-}
+    private val typeMap = mapOf<String, KClass<*>>(
+            "String" to String::class,
+            "Integer" to Int::class,
+            "Boolean" to Boolean::class,
+            "Double" to Double::class,
+            "Long" to Long::class,
+            "Timestamp" to String::class,
+            "Json" to Map::class
+    )
 
-jacoco {
-    toolVersion = "0.8.2"
-}
-
-detekt {
-    version = "1.0.0.RC7-3"
-
-    profile("main", Action {
-        input = "$projectDir/src/main/kotlin"
-        config = "$projectDir/detekt.yml"
-        filters = ".*test.*,.*/resources/.*,.*/tmp/.*"
-    })
-}
-
-val jacocoTestCoverageVerification by tasks.getting(JacocoCoverageVerification::class) {
-    violationRules {
-        rule {
-            limit {
-                minimum = BigDecimal.valueOf(0.8)
-            }
-        }
-    }
-
-    val check by tasks
-    check.dependsOn(this)
-}
-
-val jacocoTestReport by tasks.getting(JacocoReport::class) {
-    reports {
-        xml.isEnabled = true
-        xml.destination = file("$buildDir/reports/jacoco/report.xml")
-
-        html.isEnabled = false
-        csv.isEnabled = false
+    fun mapPrimitiveType(property: JsonObject): TypeName {
+        val primitiveType = property["PrimitiveType"]
+        val kotlinType = typeMap[primitiveType]
+        return kotlinType!!.asTypeName()
     }
 }
-
-val test by tasks
-jacocoTestReport.dependsOn(test)

@@ -203,58 +203,55 @@
  *
  */
 
-plugins {
-    kotlin("jvm")
-    jacoco
+@file:Suppress("ClassName")
 
-    id("io.gitlab.arturbosch.detekt")
-}
+package com.uqbar.kloudformation
 
-dependencies {
-    compile("com.beust", "klaxon", "3.0.1")
-    compile("com.squareup", "kotlinpoet", "1.0.0-RC2")
+import com.beust.klaxon.JsonObject
+import com.beust.klaxon.Parser
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.asClassName
+import io.mockk.spyk
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import kotlin.test.assertEquals
 
-    testCompile("org.junit.jupiter", "junit-jupiter-params", "5.2.0")
-    testCompile(kotlin("test-junit5"))
-    testCompile("io.mockk", "mockk", "1.8.5")
-}
+@Nested
+open class PropertyTypeMapperTest {
 
-jacoco {
-    toolVersion = "0.8.2"
-}
+    protected val parser = spyk<Parser>()
+    protected val propertyBuilder = StringBuilder()
+    protected val mapper = PropertyTypeMapper()
 
-detekt {
-    version = "1.0.0.RC7-3"
+    class mapPrimitiveType : PropertyTypeMapperTest() {
 
-    profile("main", Action {
-        input = "$projectDir/src/main/kotlin"
-        config = "$projectDir/detekt.yml"
-        filters = ".*test.*,.*/resources/.*,.*/tmp/.*"
-    })
-}
+        @ParameterizedTest
+        @MethodSource("primitiveTypes")
+        fun `can create KotlinPoet TypeNames from all the CloudFormation spec primitive types`(
+            primitiveType: String,
+            expectedTypeName: TypeName
+        ) {
+            propertyBuilder.append("{\"PrimitiveType\": \"$primitiveType\"}")
 
-val jacocoTestCoverageVerification by tasks.getting(JacocoCoverageVerification::class) {
-    violationRules {
-        rule {
-            limit {
-                minimum = BigDecimal.valueOf(0.8)
-            }
+            val propertyJsonObject = parser.parse(propertyBuilder) as JsonObject
+            val actualType = mapper.mapPrimitiveType(propertyJsonObject)
+
+            assertEquals(expectedTypeName, actualType)
+        }
+
+        companion object {
+            @JvmStatic
+            fun primitiveTypes() = listOf(
+                    Arguments.of("String", String::class.asClassName()),
+                    Arguments.of("Integer", Int::class.asClassName()),
+                    Arguments.of("Boolean", Boolean::class.asClassName()),
+                    Arguments.of("Double", Double::class.asClassName()),
+                    Arguments.of("Long", Long::class.asClassName()),
+                    Arguments.of("Timestamp", String::class.asClassName()),
+                    Arguments.of("Json", Map::class.asClassName())
+            )
         }
     }
-
-    val check by tasks
-    check.dependsOn(this)
 }
-
-val jacocoTestReport by tasks.getting(JacocoReport::class) {
-    reports {
-        xml.isEnabled = true
-        xml.destination = file("$buildDir/reports/jacoco/report.xml")
-
-        html.isEnabled = false
-        csv.isEnabled = false
-    }
-}
-
-val test by tasks
-jacocoTestReport.dependsOn(test)
