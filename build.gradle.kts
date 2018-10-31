@@ -242,7 +242,6 @@ subprojects {
     }
 
     spotless {
-
         kotlin {
             ktlint()
 
@@ -255,6 +254,14 @@ subprojects {
             licenseHeaderFile(rootProject.file("LICENSE"),
                     "(import |rootProject|dependencies|plugins|apply|include)")
         }
+    }
+
+    configure<JavaPluginConvention> {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    tasks.withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = "1.8"
     }
 
     val sourcesJar by tasks.creating(Jar::class) {
@@ -299,6 +306,7 @@ dependencies {
 }
 
 buildScan {
+    setTermsOfServiceUrl("https://gradle.com/terms-of-service")
     setTermsOfServiceAgree("yes")
     publishAlways()
 }
