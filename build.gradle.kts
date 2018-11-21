@@ -205,6 +205,7 @@
 
 @file:Suppress("INACCESSIBLE_TYPE")
 
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -213,19 +214,22 @@ version = "0.0.1"
 
 repositories {
     jcenter()
+    mavenCentral()
 }
 
 plugins {
+    java
     base
     `maven-publish`
     `build-scan`
 
-    kotlin("jvm") version "1.2.60"
+    kotlin("jvm") version "1.3.10"
 
-    id("com.diffplug.gradle.spotless") version "3.14.0"
-    id("io.gitlab.arturbosch.detekt") version "1.0.0.RC7-3"
-    id("nebula.release") version "6.3.5"
+    id("com.diffplug.gradle.spotless") version "3.16.0"
+    id("io.gitlab.arturbosch.detekt") version "1.0.0-RC11"
+    id("nebula.release") version "9.0.0"
     id("org.jetbrains.dokka") version "0.9.17"
+    id("com.github.ben-manes.versions") version "0.20.0"
 }
 
 subprojects {
@@ -309,4 +313,19 @@ buildScan {
     setTermsOfServiceUrl("https://gradle.com/terms-of-service")
     setTermsOfServiceAgree("yes")
     publishAlways()
+}
+
+val dependencyUpdates by tasks.getting(DependencyUpdatesTask::class) {
+    resolutionStrategy {
+        componentSelection {
+            all {
+                val rejected = listOf("alpha", "beta", "cr", "m", "preview")
+                        .map { qualifier -> Regex("(?i).*[.-]$qualifier[.\\d-]*") }
+                        .any { it.matches(candidate.version) }
+                if (rejected) {
+                    reject("release candidate")
+                }
+            }
+        }
+    }
 }

@@ -214,9 +214,9 @@ dependencies {
     compile("com.beust", "klaxon", "3.0.1")
     compile("com.squareup", "kotlinpoet", "1.0.0-RC2")
 
-    testCompile("org.junit.jupiter", "junit-jupiter-params", "5.2.0")
+    testCompile("org.junit.jupiter", "junit-jupiter-params", "5.3.1")
     testCompile(kotlin("test-junit5"))
-    testCompile("io.mockk", "mockk", "1.8.5")
+    testCompile("io.mockk", "mockk", "1.8.13")
 }
 
 jacoco {
@@ -224,13 +224,11 @@ jacoco {
 }
 
 detekt {
-    version = "1.0.0.RC7-3"
+    input = files("$projectDir/src/main/kotlin")
 
-    profile("main", Action {
-        input = "$projectDir/src/main/kotlin"
-        config = "$projectDir/detekt.yml"
-        filters = ".*test.*,.*/resources/.*,.*/tmp/.*"
-    })
+    filters = ".*test.*,.*/resources/.*,.*/tmp/.*"
+
+    config = files("$rootDir/detekt.yml")
 }
 
 val jacocoTestCoverageVerification by tasks.getting(JacocoCoverageVerification::class) {
