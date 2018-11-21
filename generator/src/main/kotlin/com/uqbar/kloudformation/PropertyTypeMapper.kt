@@ -224,6 +224,8 @@ class PropertyTypeMapper {
 
     fun mapPrimitiveType(property: JsonObject): TypeName {
         val primitiveType = property["PrimitiveType"]
+        require(typeMap.containsKey(primitiveType)) { "PrimitiveType $primitiveType could not be found in type map" }
+
         val kotlinType = typeMap[primitiveType]
         return kotlinType!!.asTypeName()
     }

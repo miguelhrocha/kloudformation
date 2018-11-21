@@ -213,10 +213,13 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asClassName
 import io.mockk.spyk
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import java.lang.IllegalArgumentException
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 @Nested
 open class PropertyTypeMapperTest {
@@ -239,6 +242,20 @@ open class PropertyTypeMapperTest {
             val actualType = mapper.mapPrimitiveType(propertyJsonObject)
 
             assertEquals(expectedTypeName, actualType)
+        }
+
+        @Test
+        fun `should fail when primitive type does not exists in type map`() {
+            val expectedMessage = "PrimitiveType Random could not be found in type map"
+
+            propertyBuilder.append("{\"PrimitiveType\": \"Random\"}")
+            val propertyJsonObject = parser.parse(propertyBuilder) as JsonObject
+
+            val exception = assertFailsWith<IllegalArgumentException> {
+                mapper.mapPrimitiveType(propertyJsonObject)
+            }
+
+            assertEquals(expectedMessage, exception.message)
         }
 
         companion object {
