@@ -205,13 +205,12 @@
 
 @file:Suppress("ClassName", "JUnit5MalformedNestedClass")
 
-package com.uqbar.kloudformation
+package com.uqbar.kloudformation.types
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asClassName
-import com.uqbar.kloudformation.types.PrimitiveTypeMapperImpl
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments

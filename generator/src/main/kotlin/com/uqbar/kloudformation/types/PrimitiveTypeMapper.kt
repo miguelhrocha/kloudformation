@@ -203,14 +203,18 @@
  *
  */
 
-package com.uqbar.kloudformation
+package com.uqbar.kloudformation.types
 
 import com.beust.klaxon.JsonObject
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import kotlin.reflect.KClass
 
-class PrimitiveTypeMapper {
+interface PrimitiveTypeMapper {
+    fun mapPrimitiveType(property: JsonObject): TypeName
+}
+
+class PrimitiveTypeMapperImpl : PrimitiveTypeMapper {
 
     private val typeMap = mapOf<String, KClass<*>>(
             "String" to String::class,
@@ -222,7 +226,7 @@ class PrimitiveTypeMapper {
             "Json" to Map::class
     )
 
-    fun mapPrimitiveType(property: JsonObject): TypeName {
+    override fun mapPrimitiveType(property: JsonObject): TypeName {
         val primitiveType = property["PrimitiveType"]
         require(typeMap.containsKey(primitiveType)) { "PrimitiveType $primitiveType could not be found in type map" }
 
