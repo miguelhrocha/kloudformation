@@ -203,7 +203,7 @@
  *
  */
 
-@file:Suppress("ClassName")
+@file:Suppress("ClassName", "JUnit5MalformedNestedClass")
 
 package com.uqbar.kloudformation
 
@@ -211,8 +211,7 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asClassName
-import io.mockk.spyk
-import org.junit.jupiter.api.Nested
+import com.uqbar.kloudformation.types.PrimitiveTypeMapperImpl
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -221,14 +220,13 @@ import java.lang.IllegalArgumentException
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-@Nested
-open class PropertyTypeMapperTest {
+open class PrimitiveTypeMapperImplTest {
 
-    protected val parser = spyk<Parser>()
+    protected val parser = Parser.default()
     protected val propertyBuilder = StringBuilder()
-    protected val mapper = PropertyTypeMapper()
+    protected val mapper = PrimitiveTypeMapperImpl()
 
-    class mapPrimitiveType : PropertyTypeMapperTest() {
+    class mapPrimitiveType : PrimitiveTypeMapperImplTest() {
 
         @ParameterizedTest
         @MethodSource("primitiveTypes")

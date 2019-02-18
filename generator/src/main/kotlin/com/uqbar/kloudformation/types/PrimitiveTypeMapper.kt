@@ -210,7 +210,7 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import kotlin.reflect.KClass
 
-class PropertyTypeMapper {
+class PrimitiveTypeMapper {
 
     private val typeMap = mapOf<String, KClass<*>>(
             "String" to String::class,

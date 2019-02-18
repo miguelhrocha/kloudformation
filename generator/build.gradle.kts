@@ -203,20 +203,24 @@
  *
  */
 
+import de.undercouch.gradle.tasks.download.Download
+
 plugins {
     kotlin("jvm")
     jacoco
 
     id("io.gitlab.arturbosch.detekt")
+    id("de.undercouch.download") version "3.4.3"
 }
 
 dependencies {
-    compile("com.beust", "klaxon", "3.0.1")
+    compile("com.beust", "klaxon", "5.0.1")
     compile("com.squareup", "kotlinpoet", "1.0.1")
 
+    testCompile("org.junit.jupiter", "junit-jupiter-engine", "5.3.1")
     testCompile("org.junit.jupiter", "junit-jupiter-params", "5.3.1")
     testCompile(kotlin("test-junit5"))
-    testCompile("io.mockk", "mockk", "1.8.13")
+    testCompile("io.mockk", "mockk", "1.9")
 }
 
 jacoco {
@@ -256,3 +260,9 @@ val jacocoTestReport by tasks.getting(JacocoReport::class) {
 
 val test by tasks
 jacocoTestReport.dependsOn(test)
+
+val downloadCloudFormationSpec by tasks.creating(Download::class) {
+    src("https://d1uauaxba7bl26.cloudfront.net/latest/gzip/CloudFormationResourceSpecification.json")
+    dest("$projectDir/src/main/resources/cf-spec.json")
+    overwrite(true)
+}
