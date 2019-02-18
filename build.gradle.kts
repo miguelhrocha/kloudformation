@@ -210,7 +210,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 group = "com.uqbar.kloudformation"
-version = "0.0.1"
+version = "LOCAL-SNAPSHOT"
 
 repositories {
     jcenter()
@@ -223,11 +223,11 @@ plugins {
     `maven-publish`
     `build-scan`
 
-    kotlin("jvm") version "1.3.10"
+    kotlin("jvm") version "1.3.21"
 
-    id("com.diffplug.gradle.spotless") version "3.16.0"
-    id("io.gitlab.arturbosch.detekt") version "1.0.0-RC11"
-    id("nebula.release") version "9.0.0"
+    id("com.diffplug.gradle.spotless") version "3.18.0"
+    id("io.gitlab.arturbosch.detekt") version "1.0.0-RC14"
+    id("nebula.release") version "6.3.5"
     id("org.jetbrains.dokka") version "0.9.17"
     id("com.github.ben-manes.versions") version "0.20.0"
 }
