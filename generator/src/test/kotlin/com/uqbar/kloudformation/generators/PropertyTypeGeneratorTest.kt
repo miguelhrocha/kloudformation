@@ -187,7 +187,7 @@
  *     same "printed page" as the copyright notice for easier
  *     identification within third-party archives.
  *
- *  Copyright 2018 Miguel Hernández
+ *  Copyright 2019 Miguel Hernández
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -203,69 +203,24 @@
  *
  */
 
-@file:Suppress("ClassName", "JUnit5MalformedNestedClass")
-
-package com.uqbar.kloudformation.types
+package com.uqbar.kloudformation.generators
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Parser
-import com.squareup.kotlinpoet.TypeName
-import com.squareup.kotlinpoet.asClassName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
-import java.lang.IllegalArgumentException
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
-open class PrimitiveTypeMapperImplTest {
+class PropertyTypeGeneratorTest {
 
-    protected val parser = Parser.default()
-    protected val propertyBuilder = StringBuilder()
-    protected val mapper = PrimitiveTypeMapperImpl()
+    private val parser = Parser.default()
+    private val generator = PropertyTypeGenerator()
 
-    class mapPrimitiveType : PrimitiveTypeMapperImplTest() {
+    @Test
+    fun `can create simple property type file from spec`() {
+        val specPath = javaClass.classLoader.getResource("cf-spec-simple-property-type.json").path
+        val specJsonObject = parser.parse(specPath) as JsonObject
 
-        @ParameterizedTest
-        @MethodSource("primitiveTypes")
-        fun `can create KotlinPoet TypeNames from all the CloudFormation spec primitive types`(
-            primitiveType: String,
-            expectedTypeName: TypeName
-        ) {
-            propertyBuilder.append("{\"PrimitiveType\": \"$primitiveType\"}")
-
-            val propertyJsonObject = parser.parse(propertyBuilder) as JsonObject
-            val actualType = mapper.mapPrimitiveType(propertyJsonObject)
-
-            assertEquals(expectedTypeName, actualType)
-        }
-
-        @Test
-        fun `should fail when primitive type does not exists in type map`() {
-            val expectedMessage = "PrimitiveType Random could not be found in type map"
-
-            propertyBuilder.append("{\"PrimitiveType\": \"Random\"}")
-            val propertyJsonObject = parser.parse(propertyBuilder) as JsonObject
-
-            val exception = assertFailsWith<IllegalArgumentException> {
-                mapper.mapPrimitiveType(propertyJsonObject)
-            }
-
-            assertEquals(expectedMessage, exception.message)
-        }
-
-        companion object {
-            @JvmStatic
-            fun primitiveTypes() = listOf(
-                    Arguments.of("String", String::class.asClassName()),
-                    Arguments.of("Integer", Int::class.asClassName()),
-                    Arguments.of("Boolean", Boolean::class.asClassName()),
-                    Arguments.of("Double", Double::class.asClassName()),
-                    Arguments.of("Long", Long::class.asClassName()),
-                    Arguments.of("Timestamp", String::class.asClassName()),
-                    Arguments.of("Json", Map::class.asClassName())
-            )
+        specJsonObject.values.forEach {
+            generator.generatePropertyTypes(it as JsonObject)
         }
     }
 }

@@ -206,16 +206,21 @@
 package com.uqbar.kloudformation.generators
 
 import com.beust.klaxon.JsonObject
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.LambdaTypeName
+import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
-import com.uqbar.kloudformation.types.PrimitiveTypeMapperImpl
+import com.squareup.kotlinpoet.asClassName
+import com.uqbar.kloudformation.mappers.PrimitiveTypeMapper
 
-class PropertyTypeGeneratorImpl {
+class PropertyTypeGenerator {
 
-    private val primitiveTypeMapperImpl = PrimitiveTypeMapperImpl()
+    private val requiredParameters = mutableListOf<Pair<String, TypeName>>()
 
     fun generatePropertyTypes(propertyType: JsonObject) {
         val propertyTypeName = propertyType.keys.first()
@@ -224,8 +229,10 @@ class PropertyTypeGeneratorImpl {
         val classname = propertyTypeNameComponents.last().replace(".", "")
 
         val properties = (propertyType.values.last() as JsonObject)["Properties"] as JsonObject
+
         val file = FileSpec.builder(packageName = packageName, fileName = classname)
                 .addType(createTypeSpec(classname, properties))
+                .addFunction(createDslBuilderFunction(classname))
                 .build()
 
         file.writeTo(System.out)
@@ -240,15 +247,53 @@ class PropertyTypeGeneratorImpl {
         properties.forEach {
             val propertyObject = it.value as JsonObject
 
-            funSpecBuilder.addParameter(it.key.decapitalize(), primitiveTypeMapperImpl.mapPrimitiveType(propertyObject))
+            val primitiveTypeNamePair = PrimitiveTypeMapper.mapPrimitiveType(propertyObject)
+            val primitiveTypeName = primitiveTypeNamePair.first
 
-            typeSpec.addProperty(PropertySpec.builder(it.key.decapitalize(), primitiveTypeMapperImpl.mapPrimitiveType(propertyObject))
+            val propertySpecBuilder = PropertySpec.builder(it.key.decapitalize(), primitiveTypeName)
                     .initializer(it.key.decapitalize())
-                    .build())
+
+            val parameterSpecBuilder = ParameterSpec.builder(it.key.decapitalize(), primitiveTypeName)
+            if (propertyObject["Required"] as Boolean) {
+                requiredParameters.add(Pair(it.key.decapitalize(), primitiveTypeName))
+            }
+            else {
+                propertySpecBuilder.mutable()
+                parameterSpecBuilder.defaultValue(primitiveTypeNamePair.second)
+            }
+
+            funSpecBuilder.addParameter(parameterSpecBuilder.build())
+
+            typeSpec.addProperty(propertySpecBuilder.build())
         }
 
         typeSpec.primaryConstructor(funSpecBuilder.build())
 
         return typeSpec.build()
+    }
+
+    private fun createDslBuilderFunction(classname: String): FunSpec {
+        val funSpecBuilder = FunSpec.builder(classname.decapitalize())
+                .addModifiers(KModifier.INLINE)
+
+        var objectInitializationString = "val %L = %L("
+
+        requiredParameters.forEach {
+            funSpecBuilder.addParameter(it.first, it.second)
+
+            objectInitializationString += "${it.first} = ${it.first}"
+        }
+
+        val classToBuild = ClassName("", classname)
+
+        funSpecBuilder.addParameter("block", LambdaTypeName.get(returnType = Unit::class.asClassName(), receiver = classToBuild))
+
+        funSpecBuilder.addStatement("$objectInitializationString)", classname.decapitalize(), classname)
+        funSpecBuilder.addStatement("%L.apply(block)", classname.decapitalize())
+        funSpecBuilder.addStatement("return %L", classname.decapitalize())
+
+        funSpecBuilder.returns(classToBuild)
+
+        return funSpecBuilder.build()
     }
 }

@@ -203,34 +203,29 @@
  *
  */
 
-package com.uqbar.kloudformation.types
+package com.uqbar.kloudformation.mappers
 
 import com.beust.klaxon.JsonObject
+import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import kotlin.reflect.KClass
 
-interface PrimitiveTypeMapper {
-    fun mapPrimitiveType(property: JsonObject): TypeName
-}
+object PrimitiveTypeMapper {
 
-class PrimitiveTypeMapperImpl : PrimitiveTypeMapper {
-
-    private val typeMap = mapOf<String, KClass<*>>(
-            "String" to String::class,
-            "Integer" to Int::class,
-            "Boolean" to Boolean::class,
-            "Double" to Double::class,
-            "Long" to Long::class,
-            "Timestamp" to String::class,
-            "Json" to Map::class
+    private val typeAndDefaultValuesMap = mapOf<String, Pair<KClass<*>, CodeBlock>>(
+            "String" to Pair(String::class, CodeBlock.of("\"\"")),
+            "Integer" to Pair(Int::class, CodeBlock.of("%L", 0)),
+            "Boolean" to Pair(Boolean::class, CodeBlock.of("%L", false)),
+            "Double" to Pair(Double::class, CodeBlock.of("%L", 0.00)),
+            "Long" to Pair(Long::class, CodeBlock.of("%L", 0.0)),
+            "Timestamp" to Pair(Instant::class, CodeBlock.of("%L", DateTimeFormatter.ISO_INSTANT.format(Instant.now()))),
+            "Json" to Pair(Map::class, CodeBlock.of("%L", emptyMap<String, Map<*,*>>()))
     )
 
-    override fun mapPrimitiveType(property: JsonObject): TypeName {
-        val primitiveType = property["PrimitiveType"]
-        require(typeMap.containsKey(primitiveType)) { "PrimitiveType $primitiveType could not be found in type map" }
+    fun mapPrimitiveType(property: JsonObject): Pair<TypeName, CodeBlock> =
+            Pair(typeAndDefaultValuesMap[property["PrimitiveType"]]!!.first.asTypeName(), typeAndDefaultValuesMap[property["PrimitiveType"]]!!.second)
 
-        val kotlinType = typeMap[primitiveType]
-        return kotlinType!!.asTypeName()
-    }
 }
