@@ -215,12 +215,14 @@ plugins {
 
 dependencies {
     compile("com.beust", "klaxon", "5.0.1")
-    compile("com.squareup", "kotlinpoet", "1.0.1")
+    compile("com.squareup", "kotlinpoet", "1.1.0")
 
     testCompile("org.junit.jupiter", "junit-jupiter-engine", "5.3.1")
     testCompile("org.junit.jupiter", "junit-jupiter-params", "5.3.1")
     testCompile(kotlin("test-junit5"))
+
     testCompile("io.mockk", "mockk", "1.9")
+    testCompile("com.natpryce", "hamkrest", "1.7.0.0")
 }
 
 jacoco {

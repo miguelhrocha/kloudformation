@@ -203,24 +203,11 @@
  *
  */
 
-package com.uqbar.kloudformation.generators
+package com.uqbar.kloudformation.matchers
 
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Parser
-import org.junit.jupiter.api.Test
+import com.natpryce.hamkrest.Matcher
+import com.natpryce.hamkrest.containsSubstring
+import com.natpryce.hamkrest.has
+import com.squareup.kotlinpoet.FileSpec
 
-class PropertyTypeGeneratorTest {
-
-    private val parser = Parser.default()
-    private val generator = PropertyTypeGenerator()
-
-    @Test
-    fun `can create simple property type file from spec`() {
-        val specPath = javaClass.classLoader.getResource("cf-spec-simple-property-type.json").path
-        val specJsonObject = parser.parse(specPath) as JsonObject
-
-        specJsonObject.values.forEach {
-            generator.generatePropertyTypes(it as JsonObject)
-        }
-    }
-}
+fun isDataClass(): Matcher<FileSpec> = has("a class modifier", { spec -> spec.toString() }, containsSubstring("data class"))

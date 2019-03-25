@@ -218,11 +218,12 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asClassName
 import com.uqbar.kloudformation.mappers.PrimitiveTypeMapper
 
-class PropertyTypeGenerator {
+class PropertyTypesWithPrimitives {
 
     private val requiredParameters = mutableListOf<Pair<String, TypeName>>()
 
-    fun generatePropertyTypes(propertyType: JsonObject) {
+    fun generatePropertyTypes(propertyType: JsonObject): FileSpec {
+
         val propertyTypeName = propertyType.keys.first()
         val propertyTypeNameComponents = propertyTypeName.split("::")
         val packageName = "aws.properties.${propertyTypeNameComponents[1].toLowerCase()}"
@@ -230,12 +231,10 @@ class PropertyTypeGenerator {
 
         val properties = (propertyType.values.last() as JsonObject)["Properties"] as JsonObject
 
-        val file = FileSpec.builder(packageName = packageName, fileName = classname)
+        return FileSpec.builder(packageName = packageName, fileName = classname)
                 .addType(createTypeSpec(classname, properties))
                 .addFunction(createDslBuilderFunction(classname))
                 .build()
-
-        file.writeTo(System.out)
     }
 
     private fun createTypeSpec(classname: String, properties: JsonObject): TypeSpec {
@@ -256,8 +255,7 @@ class PropertyTypeGenerator {
             val parameterSpecBuilder = ParameterSpec.builder(it.key.decapitalize(), primitiveTypeName)
             if (propertyObject["Required"] as Boolean) {
                 requiredParameters.add(Pair(it.key.decapitalize(), primitiveTypeName))
-            }
-            else {
+            } else {
                 propertySpecBuilder.mutable()
                 parameterSpecBuilder.defaultValue(primitiveTypeNamePair.second)
             }

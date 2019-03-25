@@ -187,7 +187,7 @@
  *     same "printed page" as the copyright notice for easier
  *     identification within third-party archives.
  *
- *  Copyright 2018 Miguel Hernández
+ *  Copyright 2019 Miguel Hernández
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -203,28 +203,76 @@
  *
  */
 
-package com.uqbar.kloudformation.mappers
+@file:Suppress("ClassName")
+
+package com.uqbar.kloudformation.generators
 
 import com.beust.klaxon.JsonObject
-import com.squareup.kotlinpoet.CodeBlock
-import com.squareup.kotlinpoet.TypeName
+import com.beust.klaxon.Parser
+import com.natpryce.hamkrest.allElements
+import com.natpryce.hamkrest.assertion.assertThat
+import com.natpryce.hamkrest.equalTo
+import com.natpryce.hamkrest.isIn
+import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.asTypeName
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-import kotlin.reflect.KClass
+import com.uqbar.kloudformation.matchers.isDataClass
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 
-object PrimitiveTypeMapper {
+internal class PropertyTypesWithPrimitivesTest {
 
-    private val typeAndDefaultValuesMap = mapOf<String, Pair<KClass<*>, CodeBlock>>(
-            "String" to Pair(String::class, CodeBlock.of("\"\"")),
-            "Integer" to Pair(Int::class, CodeBlock.of("%L", 0)),
-            "Boolean" to Pair(Boolean::class, CodeBlock.of("%L", false)),
-            "Double" to Pair(Double::class, CodeBlock.of("%L", 0.00)),
-            "Long" to Pair(Long::class, CodeBlock.of("%L", 0.0)),
-            "Timestamp" to Pair(Instant::class, CodeBlock.of("%L", DateTimeFormatter.ISO_INSTANT.format(Instant.now()))),
-            "Json" to Pair(Map::class, CodeBlock.of("%L", emptyMap<String, Map<*, *>>()))
-    )
+    private val parser = Parser.default()
+    private val victim = PropertyTypesWithPrimitives()
 
-    fun mapPrimitiveType(property: JsonObject): Pair<TypeName, CodeBlock> =
-            Pair(typeAndDefaultValuesMap[property["PrimitiveType"]]!!.first.asTypeName(), typeAndDefaultValuesMap[property["PrimitiveType"]]!!.second)
+    private val givenSpecPath = javaClass.classLoader.getResource("cf-spec-simple-property-type.json").path
+    private val givenSpecJson = parser.parse(givenSpecPath) as JsonObject
+    private val givenPropertyTypeToGenerate = givenSpecJson.values.first() as JsonObject
+    private val actualFileSpec = victim.generatePropertyTypes(givenPropertyTypeToGenerate)
+
+    @Nested
+    inner class fileSpec {
+
+        @Test
+        fun `should create package name from AWS resource type`() {
+            val expectedPackageName = "aws.properties.codebuild"
+
+            val actualPackageName = actualFileSpec.packageName
+
+            assertThat(actualPackageName, equalTo(expectedPackageName))
+        }
+
+        @Test
+        fun `should create classname from the AWS resource name`() {
+            val expectedClassname = "ProjectArtifacts"
+
+            val actualClassname = actualFileSpec.name
+
+            assertThat(actualClassname, equalTo(expectedClassname))
+        }
+    }
+
+    @Nested
+    inner class typeSpec {
+
+        @Test
+        fun `should create the property type as a data class`() {
+            assertThat(actualFileSpec, isDataClass())
+        }
+
+        @Test
+        fun `should create constructor with required parameters from the CloudFormation specification`() {
+            val requiredParameters = listOf(ParameterSpec.builder("type", String::class.asTypeName()).build())
+
+            val members = actualFileSpec.members
+            val typeSpec = members.first() as TypeSpec
+            val constructor = typeSpec.primaryConstructor
+            val actualParameters = constructor?.parameters!!
+
+            assertThat(requiredParameters, allElements(isIn(actualParameters)))
+        }
+    }
+
+    @Nested
+    inner class dslBuilderFunction
 }
